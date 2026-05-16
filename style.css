@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #222;
+}
+
+.app-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  margin-bottom: 10px;
+  font-size: 32px;
+}
+
+.header p {
+  color: #666;
+  font-size: 16px;
+}
+
+.menu-section {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.menu-btn {
+  padding: 14px 10px;
+  border: none;
+  border-radius: 12px;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.menu-btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+.input-section,
+.result-section {
+  background: white;
+  padding: 22px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.input-section h2 {
+  margin-top: 0;
+}
+
+#modeDescription {
+  color: #666;
+}
+
+textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  resize: vertical;
+  font-size: 16px;
+  margin-top: 12px;
+}
+
+.send-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #111827;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.send-btn:hover,
+.menu-btn:hover {
+  opacity: 0.9;
+}
+
+.result-section h3 {
+  margin-top: 0;
+}
+
+.result-box {
+  min-height: 160px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* 모바일 대응 */
+@media (max-width: 700px) {
+  .app-container {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 25px;
+  }
+
+  .menu-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .menu-btn {
+    font-size: 14px;
+    padding: 13px 8px;
+  }
+
+  .input-section,
+  .result-section {
+    padding: 18px;
+  }
+}
