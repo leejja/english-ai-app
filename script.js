@@ -6,7 +6,7 @@ function setMode(mode) {
   const title = document.getElementById("modeTitle");
   const description = document.getElementById("modeDescription");
   const input = document.getElementById("userInput");
-  const result = document.getElementById("result");
+  //const result = document.getElementById("result");
   const buttons = document.querySelectorAll(".menu-btn");
 
   buttons.forEach((button) => {
@@ -42,12 +42,12 @@ function setMode(mode) {
   }
 
   input.value = "";
-  result.innerText = "AI 답변이 여기에 표시됩니다.";
+  //result.innerText = "AI 답변이 여기에 표시됩니다.";
 }
 
 async function sendMessage() {
   const input = document.getElementById("userInput");
-  const result = document.getElementById("result");
+  const chatBox = document.getElementById("chatBox");
 
   const message = input.value.trim();
 
@@ -56,7 +56,10 @@ async function sendMessage() {
     return;
   }
 
-  result.innerText = "AI가 답변을 작성 중입니다...";
+  addMessage(message, "user");
+  input.value = "";
+
+  const loadingMessage = addMessage("AI가 답변을 작성 중입니다...", "ai");
 
   try {
     const response = await fetch("/.netlify/functions/chat", {
@@ -72,14 +75,36 @@ async function sendMessage() {
 
     const data = await response.json();
 
-    if (data.answer) {
-      result.innerText = data.answer;
-    } else {
-      result.innerText = "AI 응답을 가져오지 못했습니다.";
+    if (!response.ok) {
+      loadingMessage.innerText = data.error || "서버 오류가 발생했습니다.";
+      return;
     }
 
+    loadingMessage.innerText = data.answer || "AI 응답이 없습니다.";
   } catch (error) {
     console.error(error);
-    result.innerText = "오류가 발생했습니다.";
+    loadingMessage.innerText = "오류가 발생했습니다.";
   }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function addMessage(text, sender) {
+  const chatBox = document.getElementById("chatBox");
+
+  const messageDiv = document.createElement("div");
+  messageDiv.classList.add("message");
+
+  if (sender === "user") {
+    messageDiv.classList.add("user-message");
+  } else {
+    messageDiv.classList.add("ai-message");
+  }
+
+  messageDiv.innerText = text;
+  chatBox.appendChild(messageDiv);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  return messageDiv;
 }
