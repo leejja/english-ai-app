@@ -26,7 +26,8 @@ exports.handler = async function (event) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
+        //model: "gpt-4.1-mini",
+        model: "gpt-4o-mini",
         input: `
 ${systemPrompt}
 
@@ -47,12 +48,34 @@ ${message}
       };
     }
 
+    let answer = data.output_text;
+    
+    if (!answer && data.output && Array.isArray(data.output)) {
+      for (const item of data.output) {
+        if (item.content && Array.isArray(item.content)) {
+          for (const content of item.content) {
+            if (content.text) {
+              answer = content.text;
+              break;
+            }
+            if (content.type === "output_text" && content.text) {
+              answer = content.text;
+              break;
+            }
+          }
+        }
+        if (answer) break;
+      }
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({
-        answer: data.output_text || "AI 응답이 없습니다.",
+        answer: answer || "AI 응답이 없습니다.",
       }),
     };
+
+    
   } catch (error) {
     console.error("Function error:", error);
 
