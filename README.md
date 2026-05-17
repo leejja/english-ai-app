@@ -278,7 +278,7 @@ git commit -m "first commit"
 ### 기본 브랜치 설정
 
 ```bash
-git branch -M main
+git branch -M master
 ```
 
 ### GitHub 저장소 연결
@@ -292,7 +292,7 @@ git remote add origin https://github.com/사용자명/저장소명.git
 ### GitHub에 업로드
 
 ```bash
-git push -u origin main
+git push -u origin master
 ```
 
 ### Netlify와 GitHub 연결
