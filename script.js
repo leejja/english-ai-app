@@ -127,6 +127,10 @@ function addMessage(text, sender) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
 
+  if (currentMode === "article" && sender === "ai") {
+    messageDiv.classList.add("article-message");
+  }
+  
   if (sender === "user") {
     messageDiv.classList.add("user-message");
   } else {
