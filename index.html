@@ -15,7 +15,10 @@
 
     <main class="main">
       <section class="menu-section">
-        <button class="menu-btn active" onclick="setMode('conversation')">
+        <button class="menu-btn active" onclick="setMode('article')">
+          오늘의 핵심 기사
+        </button>
+        <button class="menu-btn" onclick="setMode('conversation')">
           상황별 영어회화
         </button>
         <button class="menu-btn" onclick="setMode('correction')">
@@ -30,14 +33,14 @@
       </section>
 
       <section class="input-section">
-        <h2 id="modeTitle">상황별 영어회화</h2>
+        <h2 id="modeTitle">오늘의 핵심 기사</h2>
         <p id="modeDescription">
-          원하는 상황을 입력하면 AI가 영어 역할극을 시작합니다.
+          AI가 오늘의 핫뉴스를 기반으로 영어 학습용 아티클과 문제를 생성합니다.
         </p>
 
         <textarea
           id="userInput"
-          placeholder="예: 카페에서 아이스 아메리카노 주문 연습하고 싶어"
+          placeholder="입력 없이 바로 AI에게 보내기를 눌러보세요."
         ></textarea>
 
         <button class="send-btn" onclick="sendMessage()">

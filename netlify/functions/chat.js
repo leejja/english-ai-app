@@ -1,5 +1,4 @@
 exports.handler = async function (event) {
-  // POST 요청만 허용
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -10,11 +9,26 @@ exports.handler = async function (event) {
   try {
     const { mode, message } = JSON.parse(event.body || "{}");
 
-    if (!message || message.trim() === "") {
+    if (mode !== "article" && (!message || message.trim() === "")) {
       return {
         statusCode: 400,
         body: JSON.stringify({ error: "메시지가 없습니다." }),
       };
+    }
+
+    let finalInput = message || "";
+
+    if (mode === "article") {
+      const newsItems = await fetchHotNews();
+
+      finalInput = `
+아래는 오늘의 주요 핫뉴스 목록이다.
+뉴스 원문을 그대로 복사하지 말고, 여러 뉴스의 핵심 흐름만 참고해서
+한국인을 위한 영어 학습용 오리지널 아티클을 새로 작성해라.
+
+뉴스 목록:
+${newsItems}
+`;
     }
 
     const systemPrompt = getPromptByMode(mode);
@@ -26,13 +40,12 @@ exports.handler = async function (event) {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        //model: "gpt-4.1-mini",
         model: "gpt-4o-mini",
         input: `
 ${systemPrompt}
 
 사용자 입력:
-${message}
+${finalInput}
         `,
       }),
     });
@@ -48,25 +61,7 @@ ${message}
       };
     }
 
-    let answer = data.output_text;
-    
-    if (!answer && data.output && Array.isArray(data.output)) {
-      for (const item of data.output) {
-        if (item.content && Array.isArray(item.content)) {
-          for (const content of item.content) {
-            if (content.text) {
-              answer = content.text;
-              break;
-            }
-            if (content.type === "output_text" && content.text) {
-              answer = content.text;
-              break;
-            }
-          }
-        }
-        if (answer) break;
-      }
-    }
+    const answer = extractAnswer(data);
 
     return {
       statusCode: 200,
@@ -74,8 +69,6 @@ ${message}
         answer: answer || "AI 응답이 없습니다.",
       }),
     };
-
-    
   } catch (error) {
     console.error("Function error:", error);
 
@@ -88,7 +81,166 @@ ${message}
   }
 };
 
+async function fetchHotNews() {
+  if (!process.env.NEWS_API_KEY) {
+    return `
+뉴스 API 키가 설정되어 있지 않습니다.
+대체 주제: 글로벌 AI 기술 경쟁, 경제 변화, 반도체 시장, 전기차 산업
+`;
+  }
+
+  const url =
+    "https://newsapi.org/v2/top-headlines?" +
+    new URLSearchParams({
+      country: "us",
+      category: "technology",
+      pageSize: "5",
+      apiKey: process.env.NEWS_API_KEY,
+    });
+
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("NewsAPI error:", data);
+    return `
+뉴스 API 호출에 실패했습니다.
+대체 주제: 글로벌 AI 기술 경쟁, 경제 변화, 반도체 시장, 전기차 산업
+`;
+  }
+
+  if (!data.articles || data.articles.length === 0) {
+    return `
+오늘 수집된 뉴스가 없습니다.
+대체 주제: 글로벌 AI 기술 경쟁, 경제 변화, 반도체 시장, 전기차 산업
+`;
+  }
+
+  return data.articles
+    .map((article, index) => {
+      return `
+${index + 1}.
+제목: ${article.title || "제목 없음"}
+요약: ${article.description || "요약 없음"}
+출처: ${article.source?.name || "출처 없음"}
+URL: ${article.url || ""}
+`;
+    })
+    .join("\n");
+}
+
+function extractAnswer(data) {
+  let answer = data.output_text;
+
+  if (!answer && data.output && Array.isArray(data.output)) {
+    for (const item of data.output) {
+      if (item.content && Array.isArray(item.content)) {
+        for (const content of item.content) {
+          if (content.text) {
+            answer = content.text;
+            break;
+          }
+          if (content.type === "output_text" && content.text) {
+            answer = content.text;
+            break;
+          }
+        }
+      }
+      if (answer) break;
+    }
+  }
+
+  return answer;
+}
+
 function getPromptByMode(mode) {
+    if (mode === "article") {
+    return `
+너는 한국인을 위한 영어 뉴스 독해 콘텐츠 제작자다.
+
+목표:
+- 오늘의 핫뉴스들을 참고해서 영어 학습용 오리지널 아티클을 작성한다.
+- 뉴스 원문을 그대로 복사하지 않는다.
+- 여러 뉴스의 공통 흐름과 핵심 이슈를 종합해 새 글로 재구성한다.
+- 영어 학습자가 읽기 좋은 장문의 영어 아티클을 제공한다.
+- 아티클 이후 문제 3개, 정답과 해설, 핵심 표현을 제공한다.
+
+중요한 제한:
+- 사실 확인이 필요한 내용은 단정적으로 과장하지 않는다.
+- 출처 기사 원문을 길게 인용하지 않는다.
+- 특정 언론사의 문장을 그대로 따라 쓰지 않는다.
+- 학습용 콘텐츠라는 성격을 유지한다.
+
+영어 난이도:
+- 중급자 기준
+- 너무 어려운 단어는 피하되, 뉴스 영어 표현은 포함한다.
+
+답변 형식:
+
+[오늘의 핵심 기사]
+제목:
+영어 아티클:
+
+[문제 3개]
+Q1.
+A.
+B.
+C.
+D.
+
+Q2.
+A.
+B.
+C.
+D.
+
+Q3.
+A.
+B.
+C.
+D.
+
+[정답 및 해설]
+Q1 정답:
+해설:
+
+Q2 정답:
+해설:
+
+Q3 정답:
+해설:
+
+[핵심 표현]
+1. 표현:
+뜻:
+예문:
+
+2. 표현:
+뜻:
+예문:
+
+3. 표현:
+뜻:
+예문:
+
+4. 표현:
+뜻:
+예문:
+
+5. 표현:
+뜻:
+예문:
+
+[문법 포인트]
+1.
+2.
+3.
+
+[참고]
+이 글은 오늘의 주요 뉴스 흐름을 바탕으로 AI가 재구성한 영어 학습용 아티클입니다.
+`;
+  }
+
   if (mode === "conversation") {
     return `
 너는 한국인을 위한 친절한 영어 회화 튜터다.
