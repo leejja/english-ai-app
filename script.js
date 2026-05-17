@@ -59,7 +59,7 @@ async function sendMessage() {
   addMessage(message, "user");
   input.value = "";
 
-  const loadingMessage = addMessage("AI가 답변을 작성 중입니다...", "ai");
+  const loadingMessage = addLoadingMessage();
 
   try {
     const response = await fetch("/.netlify/functions/chat", {
@@ -107,4 +107,25 @@ function addMessage(text, sender) {
   chatBox.scrollTop = chatBox.scrollHeight;
 
   return messageDiv;
+}
+
+function addLoadingMessage() {
+  const chatBox = document.getElementById("chatBox");
+
+  const loadingDiv = document.createElement("div");
+  loadingDiv.classList.add("message", "ai-message", "loading-message");
+
+  loadingDiv.innerHTML = `
+    <div class="typing">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  `;
+
+  chatBox.appendChild(loadingDiv);
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  return loadingDiv;
 }
