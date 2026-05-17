@@ -76,10 +76,12 @@ async function sendMessage() {
     const data = await response.json();
 
     if (!response.ok) {
+      loadingMessage.classList.remove("loading-message");
       loadingMessage.innerText = data.error || "서버 오류가 발생했습니다.";
       return;
     }
 
+    loadingMessage.classList.remove("loading-message");
     loadingMessage.innerText = data.answer || "AI 응답이 없습니다.";
   } catch (error) {
     console.error(error);
